@@ -1,0 +1,42 @@
+# Working data belongs to a recording, not to the skill. A clone should carry the
+# tooling and the instructions, never someone's footage or transcripts.
+input/
+transcripts/
+analysis/
+output/
+links.json
+*.mp4
+*.mov
+*.m4v
+*.mkv
+
+# --- python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- macOS -------------------------------------------------------------------
+.DS_Store
+._*
+
+# --- never commit, private repo or not ---------------------------------------
+# The Deepgram key lives at ~/.deepgram_key, outside this tree. These are
+# belt-and-braces in case one is ever created in here by mistake.
+.env
+.env.*
+*.key
+*_key
+*.pem
+.deepgram_key
+secrets*
+credentials*.json
+client_secret*.json
+token*.json
+
+# --- audio / caption working files -------------------------------------------
+*.wav
+*.mp3
+*.m4a
+*.srt
+*.ass

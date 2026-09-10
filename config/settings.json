@@ -1,0 +1,58 @@
+{
+  "max_clip_duration_sec": 300,
+  "min_clip_duration_sec": 30,
+  "transcription": {
+    "provider": "deepgram",
+    "model": "nova-3",
+    "api_key_env": "DEEPGRAM_API_KEY",
+    "api_key_file": "~/.deepgram_key",
+    "params": {
+      "diarize": true,
+      "punctuate": true,
+      "smart_format": true,
+      "utterances": true,
+      "filler_words": true
+    }
+  },
+  "tightening": {
+    "silence_threshold_sec": 0.7,
+    "silence_keep_sec": 0.25,
+    "min_fragment_sec": 0.3,
+    "remove_stutters": true,
+    "filler_phrases": [
+      "um",
+      "uh",
+      "you know",
+      "kind of",
+      "sort of"
+    ],
+    "remove_silences": true,
+    "_note": "Pauses, filler words and stutters are all cut here, before rendering."
+  },
+  "presenter_label": "PRESENTER",
+  "other_speaker_label_prefix": "OTHER",
+  "branding": {
+    "caption_text_color": "#FFFFFF",
+    "caption_background_color": "#000000",
+    "caption_font_name": "Inter",
+    "caption_render_size": 15,
+    "caption_box_opacity": 0.78,
+    "caption_box_padding": 7,
+    "caption_margin_v": 38
+  },
+  "captions": {
+    "max_words": 7,
+    "max_seconds": 4.0,
+    "max_chars": 42
+  },
+  "render": {
+    "crf": 20,
+    "preset": "medium",
+    "jobs": 3,
+    "_note": "ffmpeg renderer (render_clips.py). crf 18-22 is visually lossless for screen shares; lower = bigger files. jobs = parallel renders.",
+    "loudness_lufs": -14,
+    "fade_in": 0.3,
+    "fade_out": 0.5,
+    "captions": true
+  }
+}

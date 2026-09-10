@@ -1,0 +1,280 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "content_plan.schema.json",
+  "title": "Video Repurposer Content Plan",
+  "description": "Editorial output of the content-analysis + clip-selection skills for one source recording. Independent of any editing tool. The `keep_segments` of each clip (start/end, seconds into the SOURCE video) are exactly the spans render_clips.py cuts from the source.",
+  "type": "object",
+  "required": [
+    "video_id",
+    "source_video",
+    "source_duration_sec",
+    "transcript_source",
+    "generated_at",
+    "presenter_label",
+    "clips",
+    "rejected_sections",
+    "video_name"
+  ],
+  "properties": {
+    "video_id": {
+      "type": "string",
+      "description": "Stable slug for the source recording, e.g. zoom-2026-09-01-ai-strategy"
+    },
+    "source_video": {
+      "type": "string",
+      "description": "Path to the source file, relative to project root, e.g. input/zoom-2026-09-01.mp4"
+    },
+    "source_duration_sec": {
+      "type": "number",
+      "minimum": 0
+    },
+    "transcript_source": {
+      "type": "string",
+      "description": "Path to the transcript JSON this plan was derived from"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "presenter_label": {
+      "type": "string",
+      "description": "Speaker label used for the primary presenter in the transcript, e.g. PRESENTER"
+    },
+    "clips": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/clip"
+      }
+    },
+    "rejected_sections": {
+      "type": "array",
+      "description": "Editorial record of source sections that were considered and NOT turned into a clip, with why. Not required to cover the whole recording.",
+      "items": {
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "reason"
+        ],
+        "properties": {
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "video_name": {
+      "type": "string",
+      "description": "Short label for the recording (e.g. 'ICP'). Becomes the tracker's Video column so rows filter by source."
+    }
+  },
+  "definitions": {
+    "span": {
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "number",
+          "minimum": 0
+        },
+        "end": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "clip": {
+      "type": "object",
+      "required": [
+        "video_id",
+        "title",
+        "core_value_point",
+        "target_audience",
+        "why_standalone",
+        "source_start",
+        "source_end",
+        "duration_sec",
+        "keep_segments",
+        "remove_segments",
+        "other_speaker_segments",
+        "silence_segments",
+        "filler_segments",
+        "recommended_hook",
+        "recommended_ending",
+        "confidence_score",
+        "transcript",
+        "short_name",
+        "topic",
+        "summary",
+        "score",
+        "score_reasoning",
+        "hook_line"
+      ],
+      "properties": {
+        "video_id": {
+          "type": "string",
+          "description": "e.g. clip-01"
+        },
+        "title": {
+          "type": "string",
+          "description": "Suggested LinkedIn title"
+        },
+        "core_value_point": {
+          "type": "string"
+        },
+        "target_audience": {
+          "type": "string"
+        },
+        "why_standalone": {
+          "type": "string",
+          "description": "Why this section is worth turning into a standalone video"
+        },
+        "source_start": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Exact source start timestamp, seconds. Equals the first keep_segment's start."
+        },
+        "source_end": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Exact source end timestamp, seconds. Equals the last keep_segment's end."
+        },
+        "duration_sec": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 300,
+          "description": "Runtime of the FINISHED clip = sum of keep_segments durations. NOT source_end - source_start, which is only the source window and is wider whenever anything is cut out of the middle. The 300s (5 min) cap applies to this runtime."
+        },
+        "keep_segments": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Presenter-only sections to KEEP, in source-clip seconds. render_clips.py cuts exactly these, in order.",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/span"
+              }
+            ],
+            "properties": {
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "remove_segments": {
+          "type": "array",
+          "description": "Sections inside [source_start, source_end] to cut out (rambling, repetition, weak explanation, etc.)",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/span"
+              }
+            ],
+            "properties": {
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "other_speaker_segments": {
+          "type": "array",
+          "description": "Sections where a speaker other than the presenter is talking",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/span"
+              }
+            ],
+            "properties": {
+              "speaker": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "silence_segments": {
+          "type": "array",
+          "description": "Long-pause / dead-air sections",
+          "items": {
+            "$ref": "#/definitions/span"
+          }
+        },
+        "filler_segments": {
+          "type": "array",
+          "description": "Filler / low-value sections (false starts, rambling asides, throat-clearing)",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "#/definitions/span"
+              }
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "recommended_hook": {
+          "type": "string",
+          "description": "Suggested opening framing/line for the clip"
+        },
+        "recommended_ending": {
+          "type": "string",
+          "description": "Suggested closing framing/line for the clip"
+        },
+        "confidence_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "transcript": {
+          "type": "string",
+          "description": "Complete verbatim transcript of the proposed clip (concatenated keep_segments only). The presenter's words are never rewritten."
+        },
+        "short_name": {
+          "type": "string",
+          "description": "3-6 word label. Numbered by source order it becomes the clip name: '01 What is an ICP' - the rendered filename, the SRT name and the sheet's Clip name."
+        },
+        "topic": {
+          "type": "string",
+          "description": "The subject area, a few words. Tracker column."
+        },
+        "summary": {
+          "type": "string",
+          "description": "The points actually discussed in this clip. Tracker column."
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Publish-worthiness out of 10, shown in the review table. Should agree directionally with confidence_score (a 9/10 clip is not 0.4 confidence) without being a mechanical confidence x 10."
+        },
+        "score_reasoning": {
+          "type": "string",
+          "description": "Why that score - what is strong, what it was marked down for. This is what the user reads when deciding to veto."
+        },
+        "hook_line": {
+          "type": "string",
+          "description": "The clip's opening line as the viewer hears it. Distinct from recommended_hook, which is editorial advice about how to open."
+        }
+      }
+    }
+  }
+}
