@@ -126,9 +126,55 @@ and the transcripts file too - the user writes posts from it.
 
 **14. Long recordings: one clip per chapter.** A 4-hour session first produced 31 candidates;
 the user said "way too much". Merging each chapter's pieces in time order gave 14 - which the
-user called a good first iteration - and review took it to 12. Merge same-chapter clips when
+user called a good first iteration - and review took it to 12. Week 2 (3h45) started at 15 chapter clips and shipped 14 after one
+review round - one discarded (Zoom gallery only), eight re-opened, none rejected for content. Merge same-chapter clips when
 the result reads as one lesson (01 + 02 personas, trimming overlap with the buying-committee
 clip); drop repeats, thin Q&A and clips whose key line is misheard.
+
+**15. Borrow the signpost line just before the cut.** When an opener is vague, the fix is
+usually a few seconds earlier: the line where he announces the topic. Week 2 fixed four clips
+this way - "So let's start with the industry stories", "So then let's spend some time on
+LinkedIn", "And then the next important one is the review sites", and "I think all of you
+should use LinkedIn as one of your primary distribution channels" in front of a clip that
+opened "So then comes distribution". Then drop any connective left dangling after the
+borrowed line ("So then comes distribution" went, straight to "So this is the framework").
+
+**16. A story's setup line beats a clean mid-story start.** "Alright, so this is another
+classical Girish" tells the viewer a story is coming; starting at "Girish was the founder of
+Freshworks" was cut for its stutter and read as a vague start. Keep the setup, filler and all.
+
+**17. The opener carries the topic in his own words - a pop-up can't.** A cold-calling Q&A
+answer opened on "the best way to start was yesterday" with a question pop-up saying what it
+was about; the user asked for his own line instead: "Call works amazingly well from India."
+Pop-ups add context; they never replace a topic line.
+
+**18. One clip, one thing its opener names.** A clip that stitched Q&A distribution tactics
+onto the repurposing slide read as vague twice - the only line framing it as content
+distribution came 18 minutes later. Don't move that line to the front (time order, check 5);
+offer the choice. The user kept time order: the clip starts on the framing line and the
+earlier half was dropped.
+
+**19. The screen must be a slide that fits.** Drop a clip that is only the Zoom gallery
+("presentation ended, just people tiles"), however good the answer. A slide whose title fights
+the words (a cold-calling answer over "Cracking the LinkedIn game") gets `slide_cover` - the
+title painted over and replaced with the clip's question, "Does cold calling work?".
+
+**20. "We" is not automatically the running-example company.** Add a company pop-up only
+where he names the company or the slide or context makes it certain. A "we had 150+ blogs"
+clip got an Acme Commerce pop-up by inference, and the user removed it.
+
+**21. Caption fixes must land and must be true.**
+- **One line each:** a fix that straddles a caption line break silently does nothing - 27 did
+  in Week 2 until they were split into shorter pieces. Rebuild the cues and check no misheard
+  word is left on screen.
+- **Check the fact before "fixing" it:** "Oracle civil conference" was changed to "Oracle
+  OpenWorld"; the stunt was at Siebel's conference ("civil" = Siebel). A wrong fix is worse
+  than the mishearing.
+
+**22. Numbering: match by timestamp, recheck after re-cuts.** The user's sheet comments can
+be off by one ("02 start from 42:04" meant clip 03) - identify the clip by the timestamp and
+say which reading you used. A re-cut that moves a clip's start past its neighbour renumbers
+both: rename the untouched file, move the old one to the Trash, render the new number.
 
 ## Selection defaults for this account
 
