@@ -93,6 +93,20 @@ minutes. Produces `transcripts/<stem>.json` (word-level, for cut boundaries) and
 **Read the whole `.txt` before choosing anything** — arguments that open early often pay
 off late, and you cannot spot a self-contained idea from a fragment.
 
+**Scout self-contained topics - three signals (the user's method):**
+- **Self-contained first.** Look for topics that start and finish inside the recording and
+  make sense cold - a framework, a story with its lesson, an answer with its question.
+- **How / what / when questions.** He opens most topics by asking one: "How do you evaluate
+  a data vendor?", "What is the anatomy of a first email…?", "When is the right time to
+  reach out?". Each is a candidate start - and usually the opener - and the end of its answer
+  is the candidate end. Scan the transcript for these questions (and "should you…?", "why…?")
+  before reading for anything else.
+- **Screenshots at slide changes and new topics - not on a timer.** Take a frame at every
+  slide change (read them as a contact sheet) and at every point the transcript suggests a new
+  topic starts, to confirm it and see what's on screen (a demo, the Zoom gallery, a title-only
+  slide). Never every 30-60 s - that's overkill. A new slide title usually means a new topic;
+  the same slide building bullet by bullet is the same topic.
+
 Write your reasoning to `analysis/<stem>_analysis.md` first: candidates, rough windows,
 what you're rejecting and why. Then turn it into `output/content-plans/<stem>.json`.
 `references/editorial.md` has the full method, the content-plan schema and the segment
