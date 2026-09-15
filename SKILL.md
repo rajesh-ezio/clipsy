@@ -161,6 +161,11 @@ stranger must get it cold. In brief:
 
 Every rule there came from a clip that got re-cut, so don't skip it.
 
+**Then run the QC pass** in `references/qc-pass.md`: 15 yes/no questions (content, edit,
+screen, post-safety) answered for every clip from its final transcript and frames. A clip
+goes in the table only with all Yes; every No goes in the Notes column with its fix. Run it
+again on the rendered files before hand-over.
+
 ```bash
 python3 $S/review_table.py output/content-plans/<stem>.json --review
 ```
@@ -253,6 +258,31 @@ SPOT, shorten the text (a smaller box often fits) or move `at` - never place ove
 Re-run it whenever the plan is rebuilt. After rendering, grab a frame from each finished
 clip while every pop-up is showing and look at them before handing over. Boxes are sized
 from measured Inter Bold letter widths, so text never spills out of the box.
+
+**Covering a slide that doesn't match - added text.** When the slide on screen fights what
+he's saying (a Q&A answer about cold calling played over a bare "Cracking the LinkedIn
+game" title), paint over that part of the slide for the whole clip and, optionally, put a
+new heading in its place. Add to the clip in the plan:
+
+```json
+"slide_cover": [{"box": [0.0299, 0.0957, 0.408, 0.163], "fill": "#FFFFFF",
+                 "text": "Does cold calling work?", "text_at": [0.0367, 0.0962],
+                 "color": "#663497", "size": 0.0583}]
+```
+
+`box` is the area to hide and `text_at` the heading's top-left, both as fractions of the
+frame; `size` is a fraction of the frame height. It renders under the captions and pop-ups.
+Make it read as the slide's own heading:
+- **Measure the original from a source frame:** its bounding box (the coloured pixels of the
+  title), its colour, and the background around it. Pad the box a few pixels past the text.
+- **Match the size** by rendering once and comparing text heights (Inter needs about 1.4x
+  the size you'd guess from a Calibri title's pixel height), then nudge `text_at` so the tops
+  line up.
+- **Match the fill by measurement, not by the sampled value:** a sampled #FDFDFD rendered as
+  251 against the slide's 253 and left a visible box; #FFFFFF matched exactly. Compare the
+  rendered frame's pixels inside and outside the box.
+- **Check the slide doesn't change** during the clip - the cover lasts the whole clip.
+- **Sentence case,** like his slide titles, unless the user spells it otherwise.
 
 Then tell the user where the files are.
 
@@ -371,6 +401,8 @@ letterboxed.
 
 - `references/linkedin-clip-checklist.md` — the LinkedIn reader pass run before every review
   table, with the reason for each rule and the before-and-after that taught it. Read at step 5.
+- `references/qc-pass.md` — the 15-question QC pass (content, edit, screen, post-safety) run
+  on every clip before the table and on the renders before hand-over. Read at step 5.
 - `references/editorial.md` — how to choose clips, the content-plan schema, segment types,
   timestamp discipline, confidence scoring. Read during step 3.
 - `references/gotchas.md` — environment, Deepgram, editorial and rendering gotchas already

@@ -95,6 +95,8 @@ approval gate comes before any render.
 - Three clips render in parallel; `--clip` re-renders one.
 - Optional pop-up callouts: a labelled box slides in from the right to explain a name the
   viewer won't know, holds, then slides out (`callouts` in the plan).
+- Optional added text: cover part of the slide for the whole clip and put new text there,
+  e.g. replace a slide title that doesn't match what the clip is about (`slide_cover`).
 
 **Captions (on by default).**
 - White Inter Bold on a 78%-opacity dark box, placed clear of the slide's accent bar. Every

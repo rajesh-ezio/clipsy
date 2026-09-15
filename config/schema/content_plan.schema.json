@@ -287,6 +287,23 @@
               "text": {"type": "string", "description": "12-15 words."}
             }
           }
+        },
+        "slide_cover": {
+          "type": "array",
+          "description": "Optional: paint over part of the slide for the whole clip and optionally add new text there - e.g. replace a slide title that doesn't match what the clip is about. Drawn under captions and pop-ups.",
+          "items": {
+            "type": "object",
+            "required": ["box"],
+            "properties": {
+              "box": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4, "description": "[x0, y0, x1, y1] to cover, as fractions of the frame."},
+              "fill": {"type": "string", "description": "Cover colour, e.g. #FFFFFF. Match it to the rendered slide background."},
+              "text": {"type": "string", "description": "Text drawn on the cover, e.g. a replacement slide title."},
+              "text_at": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2, "description": "[x, y] top-left of the text, as fractions of the frame."},
+              "color": {"type": "string", "description": "Text colour - match the slide's title colour."},
+              "size": {"type": "number", "description": "Font size as a fraction of the frame height."},
+              "font": {"type": "string", "description": "Font name from assets/fonts. Default Inter."}
+            }
+          }
         }
       }
     }
