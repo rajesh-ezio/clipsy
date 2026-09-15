@@ -53,7 +53,8 @@ Prioritize:
 Reject:
 
 - repetition
-- introductions and housekeeping
+- introductions and housekeeping. The exception is the line that names the topic: "Today,
+  we're gonna talk about the power of customer stories" opens the first clip, not the bin.
 - weak explanations
 - rambling
 - incomplete thoughts
@@ -272,6 +273,12 @@ opens on a connective ("So", "And", "There are multiple", "Let's take an example
 names something the clip never shows ("the other filters", "as I mentioned"), it fails.
 Move the start, or drop the clip. `validate_content_plan.py` flags these, but it only sees
 the transcript — judgment about whether a reference actually dangles is yours.
+
+**The topic-first test.** A story or experiment needs its topic stated first. "We did a AB
+test where we had a product page…" leaves the viewer asking who, why and on what; opening on
+"Customer stories are nothing but case studies…" and then the test made the same clip work.
+Add the topic line (and who the "we" is) even if it comes from earlier in the recording, but
+keep the keeps in time order — a reordered "story order" version was tested and rejected.
 
 **Running-example company operations are never standalone.** Teaching sessions lean on one
 company throughout. Passages about *that company's own* operations — segment choice, launch

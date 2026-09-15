@@ -78,8 +78,9 @@ approval gate comes before any render.
 
 **Cutting.**
 - Word-edge boundaries from Deepgram timestamps, with padding clamped to silence.
-- Filler and stutters removed ("um", "you know", "kind of", repeats), never across a
-  sentence boundary.
+- Filler and stutters removed ("um", "you know", "kind of", repeats, half-word false starts
+  like "con conversions"), never across a sentence boundary.
+- Trimming a pause never deletes a word, even one left in a very short piece of audio.
 - Pauses over 0.7 s trimmed to 0.25 s.
 - Non-adjacent passages stitched into one clip.
 - The validator fails the plan if a removed word is still inside a keep.
@@ -92,6 +93,8 @@ approval gate comes before any render.
 - The source's own dimensions, with no cropping.
 - H.264 CRF 20, AAC at 160k, `+faststart`.
 - Three clips render in parallel; `--clip` re-renders one.
+- Optional pop-up callouts: a labelled box slides in from the right to explain a name the
+  viewer won't know, holds, then slides out (`callouts` in the plan).
 
 **Captions (on by default).**
 - White Inter Bold on a 78%-opacity dark box, placed clear of the slide's accent bar. Every

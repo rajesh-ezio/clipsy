@@ -61,6 +61,118 @@ DANGLING_REFERENCES = [
 ]
 
 
+# Openings that dive into a story or experiment before saying what the clip is about.
+# "We did a AB test where we had a product page..." left a LinkedIn reader asking who, why
+# and on what; opening on "Customer stories are nothing but case studies..." fixed it.
+STORY_OPENINGS = (
+    "we did", "we ran", "we tried", "we tested", "we launched", "we built", "we sponsored",
+    "we had", "we went", "i did", "i ran", "i tried", "i was", "i remember", "so we",
+    "let me take an example", "let me give you an example", "let's take an example",
+    "for example", "here is a story", "here's a story",
+)
+
+
+# Preamble that points at something the viewer never saw. "The biggest learning from the
+# Salesforce video is making your customer the hero" -> "what learning? why Salesforce?"
+# Starting on "making your customer the hero" fixed it.
+PREAMBLE_OPENINGS = (
+    "the biggest learning", "the key learning", "the biggest lesson", "the key lesson",
+    "the key takeaway", "the biggest takeaway", "the lesson from", "the learning from",
+    "the takeaway from", "the point here is",
+)
+
+
+def check_topic_first(text, tag, rep):
+    """The viewer must know what the clip is about before the story or experiment starts."""
+    opening = " ".join(text.lower().split()[:6]).strip('.,!?;:"\'')
+    for phrase in PREAMBLE_OPENINGS:
+        if opening.startswith(phrase):
+            rep.warn(f"{tag}: opens on preamble ({phrase!r}) that points at something unseen - "
+                     f"start a few words later, on the idea itself")
+            return
+    for phrase in STORY_OPENINGS:
+        if opening.startswith(phrase):
+            rep.warn(f"{tag}: opens on a story ({phrase!r}) before saying what it is about - "
+                     f"a LinkedIn reader asks who, why and on what. Pull in the line that "
+                     f"names the topic, even from earlier in the recording, and keep time order")
+            return
+
+
+# Lines where the presenter announces a new topic - a question or a signpost. They are the
+# best opening a clip can have, even on "And" or a lowercase word: the sheet's Topic column
+# is invisible to a LinkedIn viewer, so the video itself must say what it is about.
+# Learned from Events 04/06/07/08, each fixed by starting a few seconds earlier:
+# "How do we maximize the sponsorship?", "And then comes post event.", "let me tell my
+# experience of...", "and then comes the next one."
+TOPIC_SIGNPOSTS = (
+    # the session's own opening names the first clip's topic - "Today, we're gonna talk
+    # about the power of customer stories" was wrongly cut as intro housekeeping
+    "today we're gonna", "today we are gonna", "today we are going to", "today we will",
+    "today i'm gonna", "today i am going to", "we're gonna talk about", "we are going to talk about",
+    "how do", "how can", "how should", "how does", "what is", "what are", "what's the",
+    "why do", "why should", "and then comes", "then comes", "now comes", "let me tell",
+    "let's talk about", "let's start with", "let's look at", "now let's", "so let's",
+    "let's kind of", "the next one", "number one", "number two", "number three",
+    "step one", "step two", "step three",
+)
+
+
+# Lines that look like signposts but are not topic lines: housekeeping, example lead-ins,
+# course back-references, and preamble ("What is the biggest learning...") the user rejected.
+NOT_TOPIC_LINES = ("jump straight", "jump right", "get started", "let's begin", "example",
+                   "again", "biggest learning", "key learning", "takeaway", "the lesson")
+
+
+def _collapse(text):
+    """Lowercase, strip punctuation, and drop stuttered repeats: 'and then and then comes'."""
+    toks = [t.strip('.,!?;:"\'') for t in text.lower().split()]
+    toks = [t for t in toks if t]
+    out = []
+    for t in toks:
+        out.append(t)
+        for n in (3, 2, 1):             # remove an immediately repeated 1-3 word run
+            if len(out) >= 2 * n and out[-n:] == out[-2 * n:-n]:
+                del out[-n:]
+                break
+    return " ".join(out)
+
+
+def is_signpost(opening):
+    o = _collapse(opening)
+    if any(bad in o for bad in NOT_TOPIC_LINES):
+        return False
+    if any(o.startswith(s) for s in TOPIC_SIGNPOSTS):
+        return True
+    for lead in ("and ", "so ", "now ", "alright ", "okay "):
+        if o.startswith(lead):
+            return any(o[len(lead):].startswith(s) for s in TOPIC_SIGNPOSTS)
+    return False
+
+
+def check_topic_opener(clip, words, tag, rep, lookback=25.0):
+    """Point at a topic line the presenter said just before this clip starts.
+
+    A topic line starts a sentence or a clause - "...for an event, how do we maximize the
+    sponsorship?" counts from "how". Lines within 1.5s of the clip start are the clip's own
+    opening and are ignored.
+    """
+    keeps = clip.get("keep_segments") or []
+    if not keeps or not words:
+        return
+    start = min(k["start"] for k in keeps)
+    before = [i for i, w in enumerate(words) if start - lookback <= w["start"] < start - 1.5]
+    for i in reversed(before):          # nearest to the clip first
+        if i and not words[i - 1]["word"].endswith((".", "?", "!", ",")):
+            continue                    # not the start of a sentence or clause
+        line = " ".join(w["word"] for w in words[i:i + 12])
+        if is_signpost(line):
+            t = words[i]["start"]
+            rep.warn(f"{tag}: a topic line sits {start - t:.0f}s before this clip, at "
+                     f"{int(t // 60):02d}:{t % 60:04.1f}: \"{' '.join(line.split()[:9])}...\" - "
+                     f"start there so a viewer knows the topic")
+            return
+
+
 def check_cold_open(clip, tag, rep):
     """A clip must make sense from its first word. See RUNBOOK.md."""
     text = (clip.get("transcript") or "").strip()
@@ -69,6 +181,9 @@ def check_cold_open(clip, tag, rep):
     first_word = text.split()[0]
     bare = first_word.lower().strip('.,!?;:"\'')
     opening = " ".join(text.split()[:14]).lower()
+    if is_signpost(" ".join(text.split()[:12])):
+        return  # opens on a line naming the topic - the best opening, "And" or not
+    check_topic_first(text, tag, rep)
 
     if first_word[:1].islower():
         rep.warn(f"{tag}: opens mid-sentence on a lowercase word ({first_word!r}) — "
@@ -178,6 +293,8 @@ def validate_clip(clip, idx, settings, rep: Report, words=None):
         rep.warn(f"{tag}: duration {duration}s is below the {settings['min_clip_duration_sec']}s floor")
 
     check_cold_open(clip, tag, rep)
+    if words:
+        check_topic_opener(clip, words, tag, rep)
 
     # keep_segments are what actually cut - the gaps between them ARE the removals.
     # remove_segments is documentation. A remove that still sits inside a keep was

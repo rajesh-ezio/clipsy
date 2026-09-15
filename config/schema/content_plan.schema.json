@@ -273,6 +273,20 @@
         "hook_line": {
           "type": "string",
           "description": "The clip's opening line as the viewer hears it. Distinct from recommended_hook, which is editorial advice about how to open."
+        },
+        "callouts": {
+          "type": "array",
+          "description": "Optional pop-up boxes that slide in from the right, hold, and slide out. Used to explain a name the viewer won't know (e.g. the presenter's company).",
+          "items": {
+            "type": "object",
+            "required": ["at", "text"],
+            "properties": {
+              "at": {"type": "number", "description": "Source seconds - usually when the presenter says the name."},
+              "hold": {"type": "number", "description": "Seconds fully on screen. Default 4.5."},
+              "label": {"type": "string", "description": "Small heading above the text, e.g. the company name."},
+              "text": {"type": "string", "description": "12-15 words."}
+            }
+          }
         }
       }
     }

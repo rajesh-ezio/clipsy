@@ -74,7 +74,10 @@ The split of labour is also deliberate:
 - Boundaries sit on word edges from Deepgram's timestamps. Padding is clamped to the
   surrounding silence, so it never clips the next word.
 - Filler and stutters are removed ("um", "uh", "you know", "kind of", "sort of", repeated
-  words), but never across a sentence boundary.
+  words, and half-word false starts like "con conversions"), but never across a sentence
+  boundary.
+- Trimming a pause never deletes a whole word, even if the word is left in a sliver of
+  audio a fraction of a second long.
 - Pauses over 0.7 s are trimmed to 0.25 s.
 - A clip can stitch non-adjacent passages together; one clip is built from 27 separate
   segments.

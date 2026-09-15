@@ -149,6 +149,18 @@ and not a fragment.
 
 ### 5. QC, show the table, and STOP
 
+**First, run the LinkedIn reader pass** in `references/linkedin-clip-checklist.md` on every
+clip. Each clip becomes the video under a LinkedIn post written from its transcript, so a
+stranger must get it cold. In brief:
+- **Post angle:** write one line on what the post would teach.
+- **Topic first:** the topic is in the first sentence, before any story.
+- **No preamble:** don't open on something unseen ("the biggest learning from the X video…").
+- **Stories:** every story says who, why and on what.
+- **Order:** context can come from earlier in the recording, but pieces stay in time order.
+- **Captions:** read them for misheard words.
+
+Every rule there came from a clip that got re-cut, so don't skip it.
+
 ```bash
 python3 $S/review_table.py output/content-plans/<stem>.json --review
 ```
@@ -209,6 +221,39 @@ edit that clip's `keep_segments` in the plan, re-run step 4, and re-render just 
 with `--clip`. It takes seconds, and the plan stays the single record of what is in every
 clip - which is why cuts are never hand-edited in a video editor.
 
+**Pop-up callouts.** A labelled box that gives a LinkedIn viewer context the clip doesn't:
+at the start (who "we" is, what the topic is) and mid-clip wherever he leans on something
+outside the clip - an unknown company, a named framework ("strategic narrative"), "the
+example I showed you", "we were talking about X" earlier in the session, a participant's
+example. Read every clip's transcript for these, not just company names. Drop a pop-up
+when the slide on screen already shows the same thing - extract the frame and look. Add
+to the clip in the plan:
+
+```json
+"callouts": [{"at": 850.58, "hold": 6.5, "label": "Acme Commerce",
+              "text": "B2B SaaS that lets retailers launch and run their own online store."}]
+```
+
+`at` is source seconds, normally the moment he says the name. Research the text and show it
+to the user before rendering: 12-15 words, true of the real company, no hypothetical
+examples as customers. First used on TAM 03, where the user asked for 6.5 s on screen
+instead of the 4.5 s default.
+
+**A pop-up must never block slide content.** Before rendering, run
+
+```bash
+python3 $S/place_callouts.py output/content-plans/<stem>.json
+```
+
+It samples the slide across the whole time each box is on screen and searches every
+position for blank space (any white area - beside a chart, under a table, above an
+image), preferring the right side. Boxes against an edge slide in from it; boxes placed
+mid-slide nudge in and fade so they never sweep across content. If it reports NO CLEAN
+SPOT, shorten the text (a smaller box often fits) or move `at` - never place over content.
+Re-run it whenever the plan is rebuilt. After rendering, grab a frame from each finished
+clip while every pop-up is showing and look at them before handing over. Boxes are sized
+from measured Inter Bold letter widths, so text never spills out of the box.
+
 Then tell the user where the files are.
 
 ### 7. Ask for the Drive folder
@@ -267,6 +312,28 @@ something it never shows ("the other filters" — other than what?). Move the st
 the clip. The validator flags these, but only it sees the words; whether a reference truly
 dangles is your call.
 
+One exception, and it's the best opening a clip can have: a line where the presenter announces
+the topic, such as "How do we maximize the sponsorship?", "And then comes post event." or
+"Let me tell you…". He usually says it a few seconds before the content starts, so start
+there even though it opens on "And". The validator points at the nearest one before each
+clip.
+
+**The topic-first test.** Before a story, example or experiment starts, the viewer must know
+what the clip is about. Each clip becomes the video under a LinkedIn post, and a reader who
+lands on "We did a AB test where we had a product page…" asks: who, why, on what? The fix that
+worked was to open on the presenter's own topic line ("Customer stories are nothing but case
+studies… most companies don't unlock the maximum value of it"), then the test, then who ran it
+(the company and the customer). Pull that line in even from minutes earlier, and keep time
+order: reordering pieces into a "story order" was tried and rejected, because the slides jump
+and the joins sound wrong. The validator warns on "we did / we ran / let me take an example…"
+openings.
+
+The same goes for preamble that points at something unseen. "The biggest learning from the
+Salesforce video is making your customer the hero" makes a reader ask what learning, and why
+Salesforce. Start a few words later, on the idea itself: "making your customer the hero or the
+heroine." A lowercase first word is fine when it reads as a clean sentence. The validator
+warns on "the biggest learning / the key takeaway / the lesson from…" openings.
+
 **Running-example company operations are rarely standalone.** Teaching sessions lean on one
 company throughout. Passages narrating *that company's own* operations — why they chose a
 segment, how their launch went, what their numbers were — are usually connective tissue for
@@ -302,6 +369,8 @@ letterboxed.
 
 ## Reference files
 
+- `references/linkedin-clip-checklist.md` — the LinkedIn reader pass run before every review
+  table, with the reason for each rule and the before-and-after that taught it. Read at step 5.
 - `references/editorial.md` — how to choose clips, the content-plan schema, segment types,
   timestamp discipline, confidence scoring. Read during step 3.
 - `references/gotchas.md` — environment, Deepgram, editorial and rendering gotchas already

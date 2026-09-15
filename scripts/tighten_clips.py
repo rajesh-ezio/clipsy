@@ -12,6 +12,7 @@ Thresholds live in config/settings.json under "tightening". Stdlib only.
 """
 import argparse
 import json
+import math
 from pathlib import Path
 
 import sys as _sys
@@ -24,6 +25,28 @@ PROJECT_ROOT = WORKDIR
 SETTINGS_PATH = settings_path()
 
 
+
+
+# Short real words that are also the start of longer ones ("in into", "we were", "the
+# these"). A word in this list is never treated as a false start, however it is followed.
+REAL_SHORT_WORDS = set("""
+a an and any are as at be but by can car do for from go he her here his how i if in into is
+it its let me more my no not now of off on one or our out over per pro sell she so than that
+the them then there these they this to too two up us use was way we well were what when who
+why will with you your all also back come day even get give has have just like look make
+man many most much new old only own part put same see some such take tell than time very
+""".split())
+
+
+# Doubled words that are real English, not stutters: "a win win proposition" lost its
+# meaning as "a win proposition"; "had had" and "that that" are grammatical.
+REAL_DOUBLES = {"win", "had", "that"}
+
+
+def is_fragment_of(frag, word):
+    """True if `frag` looks like an abandoned start of `word` - "con" before "conversions"."""
+    return (2 <= len(frag) <= 5 and len(word) >= len(frag) + 2 and word.startswith(frag)
+            and frag.isalpha() and frag not in REAL_SHORT_WORDS)
 
 
 def find_cuts(words, keeps, cfg):
@@ -47,16 +70,29 @@ def find_cuts(words, keeps, cfg):
                 silence.append((round(start, 2), round(end, 2), f"{gap:.2f}s pause"))
 
     norm = lambda s: s.lower().strip(".,?!")
+    # Cut edges round DOWN. Rounding to nearest can land a few ms after the next kept
+    # word starts, and that word then drops out of the transcript and captions.
+    down = lambda t: math.floor(t * 100) / 100
 
     if cfg["remove_stutters"]:
-        for a, b in zip(inside, inside[1:]):
+        for i, (a, b) in enumerate(zip(inside, inside[1:])):
             # a repeat across a sentence boundary is not a stutter - "This is not ICP.
             # ICP need to be razor sharp" loses its first sentence if you cut one
             if a["word"].endswith((".", "?", "!")):
                 continue
-            if norm(a["word"]) == norm(b["word"]) and len(norm(a["word"])) > 1:
+            # start no earlier than the previous word's end: overlapping timings let the
+            # cut on "very, very" swallow the "Gong" before it
+            cut_start = max(a["start"], inside[i - 1]["end"]) if i else a["start"]
+            if cut_start >= b["start"] - 0.02:
+                continue  # words nested in the timings: no clean cut, keep the stutter
+            if (norm(a["word"]) == norm(b["word"]) and len(norm(a["word"])) > 1
+                    and norm(a["word"]) not in REAL_DOUBLES):
                 # drop the first utterance of the doubled word, keep the second
-                filler.append((round(a["start"], 2), round(b["start"], 2), f"{a['word']} {b['word']}"))
+                filler.append((down(cut_start), down(b["start"]), f"{a['word']} {b['word']}"))
+            elif is_fragment_of(norm(a["word"]), norm(b["word"])) and b["start"] - a["end"] < 0.6:
+                # a false start on the next word: "con conversions". The doubled-word rule
+                # alone left "con con conversions" as "con conversions".
+                filler.append((down(cut_start), down(b["start"]), f"{a['word']} {b['word']}"))
 
     for phrase in cfg["filler_phrases"]:
         parts = phrase.split()
@@ -67,13 +103,26 @@ def find_cuts(words, keeps, cfg):
             # never cut a phrase that opens a sentence - it leaves a hanging start
             if i > 0 and inside[i - 1]["word"].endswith((".", "?", "!")):
                 continue
-            filler.append((round(window[0]["start"], 2), round(window[-1]["end"], 2), phrase))
+            # stop at the next word's start: Deepgram timings can overlap, and a cut that
+            # runs past it drops that word ("strike" vanished from "you know, strike a")
+            end = window[-1]["end"]
+            if i + len(parts) < len(inside):
+                end = min(end, inside[i + len(parts)]["start"])
+            start = max(window[0]["start"], inside[i - 1]["end"]) if i else window[0]["start"]
+            if down(end) - down(start) < 0.02:
+                continue  # overlapping timings leave nothing clean to cut
+            filler.append((down(start), down(end), phrase))
 
     return sorted(silence), sorted(filler)
 
 
-def subtract(keeps, cuts, min_fragment):
-    """Remove cut spans from keep spans, dropping slivers."""
+def subtract(keeps, cuts, min_fragment, words):
+    """Remove cut spans from keep spans, dropping slivers that hold no whole word.
+
+    A short leftover is usually a breath, but not always: trimming the pause before
+    "And the TAM minus SAM" left "And" alone in a 0.28s sliver, and dropping it made
+    the next caption open lowercase. A sliver survives if a word sits wholly inside it.
+    """
     spans = [(k["start"], k["end"], k.get("note", "")) for k in keeps]
     for cs, ce, _ in sorted(cuts):
         out = []
@@ -86,8 +135,11 @@ def subtract(keeps, cuts, min_fragment):
             if ce < e:
                 out.append((ce, e, note))
         spans = out
+    def holds_word(s, e):
+        return any(s - 0.01 <= w["start"] and w["end"] <= e + 0.01 for w in words)
+
     return [{"start": round(s, 2), "end": round(e, 2), "note": n}
-            for s, e, n in spans if e - s >= min_fragment]
+            for s, e, n in spans if e - s >= min_fragment or holds_word(s, e)]
 
 
 def main():
@@ -107,7 +159,7 @@ def main():
         # Pauses are cut when remove_silences is true (the default); set it false to only
         # record where they are. Filler words and stutters are always cut.
         cuts = filler + (silence if cfg["remove_silences"] else [])
-        clip["keep_segments"] = subtract(clip["keep_segments"], cuts, cfg["min_fragment_sec"])
+        clip["keep_segments"] = subtract(clip["keep_segments"], cuts, cfg["min_fragment_sec"], words)
         clip["silence_segments"] = [{"start": s, "end": e} for s, e, _ in silence]
         clip["filler_segments"] = [{"start": s, "end": e, "text": t} for s, e, t in filler]
         after = sum(k["end"] - k["start"] for k in clip["keep_segments"])
