@@ -163,6 +163,13 @@ title painted over and replaced with the clip's question, "Does cold calling wor
 where he names the company or the slide or context makes it certain. A "we had 150+ blogs"
 clip got an Acme Commerce pop-up by inference, and the user removed it.
 
+**Company pop-up wording follows what he says.** If he names the company ("let's do it for
+Acme Commerce"), use the plain company pop-up: the company as the label, what it does as
+the text. If he only says "we" and the user confirms which company that is, write it as
+context: label "Context", text 'Here "we" refers to Acme Commerce, a B2B SaaS that lets
+retailers launch their own online store.' Place it on his first company "we" - not a generic
+"how do we repurpose the content".
+
 **21. Caption fixes must land and must be true.**
 - **One line each:** a fix that straddles a caption line break silently does nothing - 27 did
   in Week 2 until they were split into shorter pieces. Rebuild the cues and check no misheard
@@ -175,6 +182,36 @@ clip got an Acme Commerce pop-up by inference, and the user removed it.
 be off by one ("02 start from 42:04" meant clip 03) - identify the clip by the timestamp and
 say which reading you used. A re-cut that moves a clip's start past its neighbour renumbers
 both: rename the untouched file, move the old one to the Trash, render the new number.
+
+**23. Every company "we" gets context - and if unsure, ask.** Week 2 needed company boxes
+added by hand on six clips. Three habits caused it:
+- **Reading rule 20 ("don't infer") as "leave it out".** If you can't tell which company "we"
+  is, ask the user before rendering - never silently skip the box.
+- **Dropping the box because the company's logo is on the slide.** A logo doesn't tell a
+  stranger what the company does, or that "we" means them.
+- **Letting a topic box take the opening slot.** The company box comes first; a topic box
+  ("Buying committee") that competes with it goes.
+
+**24. Fewer boxes, each one earning its place.** Two boxes in a clip's first seconds compete.
+The user removed a topic box from one clip, and a company box from a clip whose first line
+already names the company and whose chart tells the story.
+
+**25. When the picture fights the words, put a title card over it.**
+- **A Q&A answer over a bare title slide:** hide the old title and centre the clip's question
+  on the empty slide, in the slide's title colour, larger than a heading ("Does cold calling
+  work?"). Left at the top, it looked like bullets were about to appear.
+- **A borrowed opener line brings its slide with it:** cover that slide for that line only
+  ("LinkedIn organic growth"), keeping the camera tile and the slide's accent bar. Check the
+  picture every time you borrow a line.
+- Pin the pop-ups that have to sit around the card (SKILL.md, step 6).
+
+**26. Two slides are two topics - two clips, not one squeezed under the cap.** A PR clip
+stopped halfway through the story-types slide and jumped to the next slide's how-to to stay
+under 5 minutes. The fix: finish the slide in its own clip (5:25, approved long) and make the
+how-to its own clip.
+
+**27. A clip added after publication takes the next number.** The split-off PR clip became
+15 (`append_after_existing`), so clips 12-14, their files and their sheet rows didn't move.
 
 ## Selection defaults for this account
 

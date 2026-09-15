@@ -16,6 +16,9 @@ def slug(title: str) -> str:
 
 def numbered_names(plan):
     """clip video_id -> "01 Short Name", numbered by where each clip starts in the source."""
-    ordered = sorted(plan["clips"], key=lambda c: c["keep_segments"][0]["start"])
+    # a clip added after the set was published takes the next number instead of shifting
+    # everyone after it ("append_after_existing": true), so filenames and sheet rows stay put
+    ordered = sorted(plan["clips"], key=lambda c: (bool(c.get("append_after_existing")),
+                                                   c["keep_segments"][0]["start"]))
     return {c["video_id"]: slug(f"{i:02d} {c.get('short_name') or c['title']}")
             for i, c in enumerate(ordered, 1)}

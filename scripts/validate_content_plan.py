@@ -288,7 +288,12 @@ def validate_clip(clip, idx, settings, rep: Report, words=None):
             rep.error(f"{tag}: source_end ({end}) should equal the last keep_segment end ({keeps[-1]['end']})")
 
     if duration > settings["max_clip_duration_sec"]:
-        rep.error(f"{tag}: duration {duration}s exceeds the {settings['max_clip_duration_sec']}s cap")
+        # the user can approve a longer clip so a topic is never cut short to fit the cap
+        # ("we don't want to cut before a topic completion because of the 5 minute rule")
+        if clip.get("long_approved"):
+            rep.warn(f"{tag}: duration {duration}s is over the {settings['max_clip_duration_sec']}s cap - approved long")
+        else:
+            rep.error(f"{tag}: duration {duration}s exceeds the {settings['max_clip_duration_sec']}s cap")
     if duration < settings["min_clip_duration_sec"]:
         rep.warn(f"{tag}: duration {duration}s is below the {settings['min_clip_duration_sec']}s floor")
 

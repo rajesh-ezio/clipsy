@@ -97,6 +97,10 @@ approval gate comes before any render.
   viewer won't know, holds, then slides out (`callouts` in the plan).
 - Optional added text: cover part of the slide for the whole clip and put new text there,
   e.g. replace a slide title that doesn't match what the clip is about (`slide_cover`).
+- Title cards: centre a question on an empty slide, or cover a borrowed line's slide for just
+  that line (`slide_cover` with `align` and `from`/`to`); pop-ups around them can be pinned.
+- Approved long clips (`long_approved`) and clips added later that take the next number
+  (`append_after_existing`).
 
 **Captions (on by default).**
 - White Inter Bold on a 78%-opacity dark box, placed clear of the slide's accent bar. Every

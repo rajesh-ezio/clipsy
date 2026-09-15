@@ -65,6 +65,9 @@ def main():
     flagged = 0
     for clip in plan["clips"]:
         for co in clip.get("callouts", []):
+            if co.get("pinned"):        # placed by hand (e.g. around added slide text) - keep it
+                print(f"{clip['video_id']}  {co.get('label', '')[:24]:<24} pinned, left as placed")
+                continue
             span = co.get("hold", 4.5) + 0.8
             tables = [integral(f, fw, fh) for f in
                       (gray_frame(ffmpeg, src, co["at"] + d, fw, fh)

@@ -284,6 +284,20 @@ Make it read as the slide's own heading:
 - **Check the slide doesn't change** during the clip - the cover lasts the whole clip.
 - **Sentence case,** like his slide titles, unless the user spells it otherwise.
 
+**Title cards, time-limited covers, pinned pop-ups.** `slide_cover` entries can also:
+- **Centre text on an empty slide:** a text-only entry (no `box`) with `"align": 5` and
+  `text_at` at the centre - it reads as a title card, not a heading with bullets to come.
+- **Cover part of the clip only:** `"from"`/`"to"` in source seconds - e.g. just the opening
+  line borrowed from another slide. Blank the slide area, not the camera tile or accent bar.
+- Pop-ups that must sit around added text get `"pinned": true` plus `y`/`side`, so
+  place_callouts leaves them where they are.
+
+**Approved long clips and late additions.** A clip the user approves over the 5-minute cap
+gets `"long_approved": true` - the validator warns instead of failing ("we don't want to cut
+before a topic completion because of the 5 minute rule"). A clip added after the set is
+published gets `"append_after_existing": true`: it takes the next number and nothing else
+renumbers.
+
 Then tell the user where the files are.
 
 ### 7. Ask for the Drive folder

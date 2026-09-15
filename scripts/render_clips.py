@@ -267,26 +267,35 @@ def callout_ass(clip, segments, w, h, brand):
         *events, ""])
 
 
-def cover_ass(clip, w, h, brand):
+def cover_ass(clip, w, h, brand, segments=None):
     """Paint over part of the slide for the whole clip, optionally with new text on top.
 
     For a clip whose slide doesn't match what he's saying (a cold-calling Q&A answer played
     over a bare "Cracking the LinkedIn game" title). Plan field, per clip:
     "slide_cover": [{"box": [x0, y0, x1, y1], "fill": "#FFFFFF", "text": "Does cold calling
-    work?", "text_at": [x, y], "color": "#663497", "size": 0.0583}] - box and text_at as
+    work?", "text_at": [x, y], "align": 7, "color": "#663497", "size": 0.0583}] - box and text_at as
     fractions of the frame, size as a fraction of its height. Match fill to the slide's
     background and color/size to its title so it reads as the slide's own heading - by
     measuring the rendered frame: a sampled #FDFDFD rendered 2 levels darker than the slide
     and showed as a faint box. Drawn under the captions and pop-ups."""
+    ts = lambda t: f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
     events = []
     for c in clip.get("slide_cover", []):
-        x0, y0, x1, y1 = (c["box"][0] * w, c["box"][1] * h, c["box"][2] * w, c["box"][3] * h)
-        shape = f"m 0 0 l {x1 - x0:.0f} 0 l {x1 - x0:.0f} {y1 - y0:.0f} l 0 {y1 - y0:.0f}"
-        events.append(f"Dialogue: 0,0:00:00.00,9:59:59.00,Cover,,0,0,0,,{{\\an7\\pos({x0:.0f},{y0:.0f})"
-                      f"\\bord0\\shad0\\1c{ass_colour(c.get('fill', '#FFFFFF'))}\\p1}}{shape}")
+        # optional "from"/"to" in SOURCE seconds limit the cover to part of the clip - e.g.
+        # only the opening line borrowed from another slide, whose picture doesn't fit
+        a = clip_time(segments, c["from"]) if segments and "from" in c else 0.0
+        b = clip_time(segments, c["to"]) if segments and "to" in c else 35999.0
+        span = f"{ts(a)},{ts(b)}"
+        if c.get("box"):                # an entry can be text only (no cover box)
+            x0, y0, x1, y1 = (c["box"][0] * w, c["box"][1] * h, c["box"][2] * w, c["box"][3] * h)
+            shape = f"m 0 0 l {x1 - x0:.0f} 0 l {x1 - x0:.0f} {y1 - y0:.0f} l 0 {y1 - y0:.0f}"
+            events.append(f"Dialogue: 0,{span},Cover,,0,0,0,,{{\\an7\\pos({x0:.0f},{y0:.0f})"
+                          f"\\bord0\\shad0\\1c{ass_colour(c.get('fill', '#FFFFFF'))}\\p1}}{shape}")
         if c.get("text"):
-            tx, ty = c.get("text_at", c["box"][:2])
-            events.append(f"Dialogue: 1,0:00:00.00,9:59:59.00,Cover,,0,0,0,,{{\\an7\\pos({tx * w:.0f},{ty * h:.0f})"
+            # `align` is the ASS numpad anchor for text_at: 7 = top-left (default), 5 = centre,
+            # so a question can sit centred on an empty slide like a title card
+            tx, ty = c.get("text_at", (c.get("box") or [0, 0])[:2])
+            events.append(f"Dialogue: 1,{span},Cover,,0,0,0,,{{\\an{c.get('align', 7)}\\pos({tx * w:.0f},{ty * h:.0f})"
                           f"\\bord0\\shad0\\fn{c.get('font', 'Inter')}\\fs{c.get('size', 0.037) * h:.0f}"
                           f"\\1c{ass_colour(c.get('color', '#000000'))}}}{c['text']}")
     return "\n".join([
@@ -420,7 +429,7 @@ def render_one(job):
         if clip.get("slide_cover"):
             # first in the chain, so captions and pop-ups draw on top of it
             (work / "cover.ass").write_text(cover_ass(clip, opts["width"], opts["height"],
-                                                      opts["brand"]))
+                                                      opts["brand"], segments))
             subtitles = ",".join(filter(None, [f"ass=cover.ass:fontsdir={FONTS_DIR}", subtitles]))
         polish = dict(opts["polish"])
         if polish.get("loudness_lufs") is not None:
