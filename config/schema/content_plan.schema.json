@@ -40,6 +40,10 @@
       "type": "string",
       "description": "Speaker label used for the primary presenter in the transcript, e.g. PRESENTER"
     },
+    "name_timestamps": {
+      "type": ["boolean", "integer"],
+      "description": "Put the source range in every clip name - \"16 How to discover topics (0.58.49-1.04.40)\". true for the whole recording, or a clip number to start there so clips already in the tracker and in Drive keep their names."
+    },
     "clips": {
       "type": "array",
       "items": {
@@ -290,7 +294,7 @@
           }
         },
         "long_approved": {"type": "boolean", "description": "The user approved this clip over the duration cap so a topic isn't cut short; the validator warns instead of failing."},
-        "append_after_existing": {"type": "boolean", "description": "Added after the set was published: numbered after every other clip so existing numbers don't shift."},
+        "append_after_existing": {"type": ["boolean", "integer"], "description": "Added after the set was published: numbered after every other clip so existing numbers don't shift. Use 1, 2, 3... for successive late batches so earlier additions keep their numbers."},
         "slide_cover": {
           "type": "array",
           "description": "Optional: paint over part of the slide for the whole clip and optionally add new text there - e.g. replace a slide title that doesn't match what the clip is about. Drawn under captions and pop-ups.",

@@ -213,6 +213,22 @@ how-to its own clip.
 **27. A clip added after publication takes the next number.** The split-off PR clip became
 15 (`append_after_existing`), so clips 12-14, their files and their sheet rows didn't move.
 
+**28. Overlap means the same span of the recording, not the same subject.** Two clips overlap
+when they use the same passage, or repeat the same story, example or number - clip 19 was
+reaching into clip 05's span (1:28:27-1:32:29) and Week 3's clip 11 replayed 30 seconds of
+clip 10. Two different passages are two clips even when the topic label matches: Week 2 names
+the industry-stories pillar at 29:41 and goes deep on it at 42:04, thirteen minutes and one
+slide later, which is how a class is taught. Compare source ranges and examples, never
+headings. Judging by heading is how the CPC/CPM benchmark example got cut out of clip 25 -
+the user: "its not overlap its different part of the long video". A pillar that arrives with
+less substance than its neighbours is a sign the cut is wrong, not that the material is thin.
+
+**29. Source timestamps in the clip name.** From Week 2 clip 15 on, a clip name carries the
+range it came from - `16 How to discover topics (0.58.49-1.04.40)`, h.mm.ss because colons
+can't go in filenames. Set the plan's `"name_timestamps"` to `true` for a whole recording, or
+to a clip number to start there: clips already in the tracker and in Drive keep their names,
+because renaming them orphans their rows and links.
+
 ## Selection defaults for this account
 
 - **Score bar:** keep 8+ only; quality over quantity.

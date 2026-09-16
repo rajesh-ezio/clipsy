@@ -100,7 +100,9 @@ approval gate comes before any render.
 - Title cards: centre a question on an empty slide, or cover a borrowed line's slide for just
   that line (`slide_cover` with `align` and `from`/`to`); pop-ups around them can be pinned.
 - Approved long clips (`long_approved`) and clips added later that take the next number
-  (`append_after_existing`).
+  (`append_after_existing`, numbered per batch).
+- Source timestamps in the clip name — `16 How to discover topics (0.58.49-1.04.40)` — for a
+  whole recording or from a given clip number on (`name_timestamps`).
 
 **Captions (on by default).**
 - White Inter Bold on a 78%-opacity dark box, placed clear of the slide's accent bar. Every

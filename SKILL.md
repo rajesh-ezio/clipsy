@@ -310,7 +310,8 @@ Make it read as the slide's own heading:
 gets `"long_approved": true` - the validator warns instead of failing ("we don't want to cut
 before a topic completion because of the 5 minute rule"). A clip added after the set is
 published gets `"append_after_existing": true`: it takes the next number and nothing else
-renumbers.
+renumbers. Later batches use 2, 3… so an earlier addition keeps its number too (Week 2: the
+split-off PR clip is 1, the reviewer's nine are 2, the story-pillars slide is 3).
 
 Then tell the user where the files are.
 
@@ -344,6 +345,12 @@ The same string is the rendered filename, the SRT filename and the sheet's `Clip
 That's what lets Drive files match tracker rows with no manual mapping. Numbering restarts
 per recording. `naming.numbered_names()` is the single source of truth — every script
 imports it rather than deriving names independently.
+
+With the plan's `"name_timestamps"` set, the name also carries the source range —
+`16 How to discover topics (0.58.49-1.04.40)`, h.mm.ss because a filename can't hold colons,
+first keep's start to last keep's end. `true` applies it to the whole recording; a clip
+number starts it there, which is how Week 2 kept 01–14 as they already sat in the tracker
+and in Drive (renaming a published clip orphans its row and its link).
 
 ## The tracker sheet
 
