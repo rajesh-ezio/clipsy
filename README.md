@@ -101,6 +101,8 @@ approval gate comes before any render.
   that line (`slide_cover` with `align` and `from`/`to`); pop-ups around them can be pinned.
 - Approved long clips (`long_approved`) and clips added later that take the next number
   (`append_after_existing`, numbered per batch).
+- A slide held as a still over a stretch where the screen wanders off it, cropped so the live
+  camera tile keeps moving (`slide_cover` with `image`).
 - Source timestamps in the clip name — `16 How to discover topics (0.58.49-1.04.40)` — for a
   whole recording or from a given clip number on (`name_timestamps`).
 

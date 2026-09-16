@@ -281,6 +281,8 @@ def cover_ass(clip, w, h, brand, segments=None):
     ts = lambda t: f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
     events = []
     for c in clip.get("slide_cover", []):
+        if c.get("image"):
+            continue    # a held still frame: drawn by the overlay chain, not painted here
         # optional "from"/"to" in SOURCE seconds limit the cover to part of the clip - e.g.
         # only the opening line borrowed from another slide, whose picture doesn't fit
         a = clip_time(segments, c["from"]) if segments and "from" in c else 0.0
@@ -312,7 +314,7 @@ def cover_ass(clip, w, h, brand, segments=None):
         *events, ""])
 
 
-def filter_graph(segments, t0, subtitles, polish, total):
+def filter_graph(segments, t0, subtitles, polish, total, stills=()):
     """One trim per keep segment, faded at the seams, concatenated, then finished.
 
     Finishing = captions, a short fade in from black and out at the end, and loudness
@@ -340,20 +342,34 @@ def filter_graph(segments, t0, subtitles, polish, total):
         # AAC packets in the first 0.1s). Local players ignore that; Google Drive's
         # transcoder honours it and warps the opening audio. Renumber the samples.
         # loudnorm's linear mode can still overshoot its -1.5 dBTP target (one Week 1 clip
-        # peaked at 0.0 dBTP): a sample-peak limiter at -2.5 dBFS leaves room for the
-        # inter-sample and AAC-encoding overshoot (-1.5 dBFS still measured -0.2 dBTP).
-        # latency=true keeps sync.
+        # peaked at 0.0 dBTP), so a sample-peak limiter sits after it. The ceiling has to
+        # allow for AAC overshoot, which is much larger than it looks: a dense, heavily
+        # limited passage measured -2.50 dBFS as PCM and +0.14 dBFS once encoded - 2.6 dB
+        # of overshoot, and raising the bitrate to 192k or 256k changed nothing (Week 3
+        # clip 20). -4 dBFS keeps the encoded true peak under -0.5 dBTP on that material
+        # and never touches a clip whose own peaks sit lower. latency=true keeps sync.
         audio += [polish["loudnorm"], "aresample=48000",
-                  "alimiter=limit=0.75:attack=5:release=50:level=false:latency=true",
+                  "alimiter=limit=0.63:attack=5:release=50:level=false:latency=true",
                   "asetpts=N/SR/TB"]
     if fi:
         audio.append(f"afade=t=in:d={min(fi, 0.15)}")
     if fo:
         audio.append(f"afade=t=out:st={max(total - fo, 0):.3f}:d={fo}")
 
+    # A still frame held over part of the clip: the screen went somewhere irrelevant (a
+    # different slide, an editor window) while the point being made is still the one on the
+    # frozen slide. Cropped to a box so the live camera tile keeps moving, and drawn before
+    # the caption/pop-up chain so those still sit on top.
     vlabel, alabel = "[vc]", "[ac]"
+    for n, (idx, a, b, box) in enumerate(stills, 1):
+        crop = f"crop={box[2]}:{box[3]}:{box[0]}:{box[1]}," if box else ""
+        pos = f"{box[0]}:{box[1]}" if box else "0:0"
+        parts.append(f"[{idx}:v]{crop}setsar=1[im{n}]")
+        parts.append(f"{vlabel}[im{n}]overlay={pos}:eof_action=pass:"
+                     f"enable='between(t,{a:.3f},{b:.3f})'[vi{n}]")
+        vlabel = f"[vi{n}]"
     if video:
-        parts.append(f"[vc]{','.join(video)}[vout]")
+        parts.append(f"{vlabel}{','.join(video)}[vout]")
         vlabel = "[vout]"
     if audio:
         parts.append(f"[ac]{','.join(audio)}[aout]")
@@ -436,12 +452,28 @@ def render_one(job):
             polish["loudnorm"] = measure_loudness(opts, src, t0, segments,
                                                   polish["loudness_lufs"])
         expected = rendered_length(segments, t0, opts["fps"])
-        graph, vlabel, alabel = filter_graph(segments, t0, subtitles, polish, expected)
+        stills, still_inputs = [], []
+        for c in clip.get("slide_cover", []):
+            if not c.get("image"):
+                continue
+            a = clip_time(segments, c["from"]) if "from" in c else 0.0
+            b = clip_time(segments, c["to"]) if "to" in c else expected
+            box = None
+            if c.get("box"):
+                x0, y0, x1, y1 = c["box"]
+                box = (int(x0 * opts["width"]), int(y0 * opts["height"]),
+                       int((x1 - x0) * opts["width"]), int((y1 - y0) * opts["height"]))
+            img = Path(c["image"])
+            if not img.is_absolute():
+                img = WORKDIR / img
+            stills.append((1 + len(stills), a, b, box))
+            still_inputs += ["-loop", "1", "-framerate", f"{opts['fps']:.3f}", "-i", str(img)]
+        graph, vlabel, alabel = filter_graph(segments, t0, subtitles, polish, expected, stills)
 
         out = out_dir / f"{name}.mp4"
         part = out_dir / f".{name}.part.mp4"
         cmd = [opts["ffmpeg"], "-hide_banner", "-loglevel", "error", "-y",
-               "-ss", f"{t0:.3f}", "-i", str(src),
+               "-ss", f"{t0:.3f}", "-i", str(src), *still_inputs,
                "-filter_complex", graph, "-map", vlabel, "-map", alabel,
                "-c:v", "libx264", "-preset", opts["preset"], "-crf", str(opts["crf"]),
                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",

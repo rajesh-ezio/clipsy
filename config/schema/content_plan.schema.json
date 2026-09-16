@@ -301,7 +301,8 @@
           "items": {
             "type": "object",
             "properties": {
-              "box": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4, "description": "[x0, y0, x1, y1] to cover, as fractions of the frame."},
+              "box": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4, "description": "[x0, y0, x1, y1] to cover, as fractions of the frame. With \"image\", the region of the still to show, at the same place."},
+              "image": {"type": "string", "description": "Path to a full-resolution still (e.g. work/stills/<stem>_<slide>.png) held over the clip for this from/to, so a slide stays on screen while the recording wanders off it. Give one entry per region so the live camera tile keeps moving."},
               "fill": {"type": "string", "description": "Cover colour, e.g. #FFFFFF. Match it to the rendered slide background."},
               "text": {"type": "string", "description": "Text drawn on the cover, e.g. a replacement slide title."},
               "text_at": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2, "description": "[x, y] top-left of the text, as fractions of the frame."},

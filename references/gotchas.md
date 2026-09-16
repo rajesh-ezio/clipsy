@@ -128,6 +128,27 @@ this and was wrong — it is a fine clip.)
 - **Every render self-checks** - duration against plan, output loudness, caption blinks,
   orphans and dangling line-ends - and saves a mid-caption frame per clip in `output/clips/qc/`.
 
+## Found while QCing Week 3 (2026-09-16)
+
+- **AAC overshoots the limiter by up to 2.6 dB.** A dense, heavily limited passage measured
+  -2.50 dBFS as PCM and **+0.14 dBFS** once encoded at 160k; 192k and 256k changed nothing, so
+  it is quantisation ringing, not bitrate. One clip shipped at +0.8 dBTP - actual clipping -
+  before the limiter ceiling was dropped from -2.5 to -4 dBFS. Always read the render's own
+  peak line; the limiter value alone does not tell you what the file does.
+- **A filler cut between two identical words creates a stutter.** "awards where, *you know*,
+  where" becomes "awards where, where"; "this *kind of* this comprehensive" becomes "this
+  this". `tighten_clips` only sees the doubling on a second pass over its own output, so either
+  run it twice or cut the leftover word by hand (and fix the caption line).
+- **Check `caption_fixes` against the built LINES, not the finished text.** A key that straddles
+  a line break silently does nothing - 20-odd of one batch's fixes were dead that way. And
+  scanning the fixed text for the key gives false positives, because a key is often a substring
+  of its own replacement. The real test: does the key match any line of `cues_for_clip` output?
+- **Your own fixes create new caption faults.** Shortening a line can leave a two-word orphan
+  or an ending on "a"/"about"/"than". Re-run the orphan and dangling check after every round of
+  fixes, not just at the end.
+- **A cover box with an `image` must not be painted.** `cover_ass` skips entries that carry an
+  image; without that skip the white fill lands on top of the still and the slide disappears.
+
 ## CapCut — retired 2026-09-10
 
 The skill once built CapCut drafts by writing CapCut's project JSON straight to disk. It was

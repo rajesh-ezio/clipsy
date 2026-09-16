@@ -229,6 +229,45 @@ can't go in filenames. Set the plan's `"name_timestamps"` to `true` for a whole 
 to a clip number to start there: clips already in the tracker and in Drive keep their names,
 because renaming them orphans their rows and links.
 
+**30. Coverage first: inventory every slide, then decide.** After the first pass, list the
+stretches no clip covers, take the slide changes inside them (`work/<stem>_slide_changes.txt`),
+pull one frame each into contact sheets, and read the transcript only where a title promises a
+topic. Week 3 went from 19 clips to 29 that way - ten clips, a third of the set, were in
+material already read once. Two cautions: a slide can be on screen while he answers someone
+else's question (Week 3's "Trigger Events" - no clip), and a slide's topic can run past where
+you stopped (clip 03 ended at 2:54 of a 4:16 slide, losing the answer on LinkedIn match rates).
+
+**31. Seamless openers: borrow the words just before or after the range.** The user's rule for
+Week 4: an opener should not start mid-thought, so take the line that sets it up even when it
+sits outside the range you were given. Three shapes that worked in Week 3: his signpost plus
+his framing line ("Alright, so let's start with the email fundamentals" + "here are some of the
+learnings"), a handover from the previous topic ("you are done with subject line - now the email
+content"), and a definition before the example ("Outbound is... you, as a brand, you do an
+outreach"). Cut the stumble out of the AUDIO, not just the caption: dropping "the is the flip"
+and "So" left "Outbound is... you, as a brand", which reads as one sentence.
+
+**32. One slide, one clip - but merge when the split doesn't work.** Maximise coverage by
+clipping each slide's topic; when one slide is a walkthrough, a split reads worse than the whole
+(the user on the icebreaker/context split: "not working, club 10 and 11 together"). To fit a
+length cap, cut tangents and duplicated examples - a rambling referral story, an aside about a
+customer they didn't have, a second example of the same point, a passage another clip owns -
+never a section of the walkthrough.
+
+**33. Replace a slide title that undersells the clip.** Measure the title off the frame (ink
+box, cap height, the purple, the near-white background), cover it and write the specific title
+in the slide's own style: "The campaign strategy" -> "LinkedIn campaign strategy", "How to
+optimize" -> "How to optimize LinkedIn ads". If his wording contradicts the content, say so
+once with the evidence - then use his wording and record why in the plan, so a later QC pass
+doesn't "correct" it (Week 3 clip 29 is titled "LinkedIn Display Ads" over Google-only content).
+
+**34. Pop-ups and the sheet are written for the reader.** A company box says what the company
+does, in the house shape, and carries the word he uses for it: "B2B SaaS that uses intent data
+to find in-market accounts and target ads at them" - not a category label, not a founding city
+or year. Check the wording against the company's own site (Demandbase's own timeline says 2006;
+a third-party listing said 2005). The same applies to the tracker's Score reasoning: it is read
+by someone choosing what to post, so editing notes ("the demo is cut", "as the user asked")
+never belong in it - keep those in why_standalone and override score_reasoning per clip.
+
 ## Selection defaults for this account
 
 - **Score bar:** keep 8+ only; quality over quantity.

@@ -107,6 +107,17 @@ off late, and you cannot spot a self-contained idea from a fragment.
   slide). Never every 30-60 s - that's overkill. A new slide title usually means a new topic;
   the same slide building bullet by bullet is the same topic.
 
+**Then a coverage pass, before you settle the list.** List every stretch no candidate covers,
+take the slide changes inside those stretches, pull one frame each (contact sheets of six read
+fast) and check the transcript wherever a title promises a topic. This is what turns a decent
+pass into a complete one - Week 3 went 19 -> 29 clips on it. A slide on screen is not proof the
+topic was taught, and a topic can run past where you stopped, so read the transcript both ways.
+
+**Openers: borrow from outside the range.** A clip must not open mid-thought. Take the setup
+line immediately before the range (his signpost, a handover from the previous topic, a
+definition before the example) or a line just after it, and cut the stumble words out of the
+audio rather than papering over them in the caption.
+
 Write your reasoning to `analysis/<stem>_analysis.md` first: candidates, rough windows,
 what you're rejecting and why. Then turn it into `output/content-plans/<stem>.json`.
 `references/editorial.md` has the full method, the content-plan schema and the segment
@@ -306,6 +317,14 @@ Make it read as the slide's own heading:
 - Pop-ups that must sit around added text get `"pinned": true` plus `y`/`side`, so
   place_callouts leaves them where they are.
 
+**Holding a slide as a still.** When the screen wanders off the point (into the slide editor,
+a different deck, an unrelated tab) while he keeps talking about the slide, freeze the slide
+instead of showing the detour: extract the frame at full resolution into `work/stills/`, then
+add `slide_cover` entries with `"image"`, `"from"`/`"to"` in source seconds, and a `box` per
+region so the live camera tile keeps moving (two entries: everything left of the tile, and the
+strip below it). The video takes over the moment the screen becomes relevant again. Week 3's
+subject-line clip holds its slide for eight seconds until the tester page appears.
+
 **Approved long clips and late additions.** A clip the user approves over the 5-minute cap
 gets `"long_approved": true` - the validator warns instead of failing ("we don't want to cut
 before a topic completion because of the 5 minute rule"). A clip added after the set is
@@ -343,7 +362,10 @@ before.
 
 The same string is the rendered filename, the SRT filename and the sheet's `Clip name`.
 That's what lets Drive files match tracker rows with no manual mapping. Numbering restarts
-per recording. `naming.numbered_names()` is the single source of truth — every script
+per recording, in source order - chronological numbering is what the user expects, so keep
+`append_after_existing` for clips added after a set is in Drive or the tracker, and renumber
+chronologically (renaming the files) when nothing is published yet.
+`naming.numbered_names()` is the single source of truth — every script
 imports it rather than deriving names independently.
 
 With the plan's `"name_timestamps"` set, the name also carries the source range —
