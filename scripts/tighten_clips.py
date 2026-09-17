@@ -22,6 +22,7 @@ from _paths import (SKILL_HOME, WORKDIR, INPUT_DIR, TRANSCRIPTS_DIR, ANALYSIS_DI
                     PLANS_DIR, CAPTIONS_DIR, settings_path,
                     ensure_dirs)
 PROJECT_ROOT = WORKDIR
+from naming import body_range  # noqa: E402
 SETTINGS_PATH = settings_path()
 
 
@@ -164,8 +165,7 @@ def main():
         clip["filler_segments"] = [{"start": s, "end": e, "text": t} for s, e, t in filler]
         after = sum(k["end"] - k["start"] for k in clip["keep_segments"])
         clip["duration_sec"] = round(after, 2)
-        clip["source_start"] = clip["keep_segments"][0]["start"]
-        clip["source_end"] = clip["keep_segments"][-1]["end"]
+        clip["source_start"], clip["source_end"] = body_range(clip["keep_segments"], clip.get("opener_spans", ()))
         print(f"{clip['video_id']}: {before:6.1f}s -> {after:6.1f}s  "
               f"(-{before - after:4.1f}s: {len(silence)} pauses, {len(filler)} filler) "
               f"{len(clip['keep_segments'])} segments")

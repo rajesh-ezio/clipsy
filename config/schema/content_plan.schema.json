@@ -293,6 +293,7 @@
             }
           }
         },
+        "opener_spans": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}, "description": "Source [start, end] spans of a borrowed opener that plays before the body but is not where the clip lives (e.g. a definition and the line before it, stitched out of order). Keeps inside them are left out of source_start/source_end, the clip name's range and its numbering."},
         "long_approved": {"type": "boolean", "description": "The user approved this clip over the duration cap so a topic isn't cut short; the validator warns instead of failing."},
         "append_after_existing": {"type": ["boolean", "integer"], "description": "Added after the set was published: numbered after every other clip so existing numbers don't shift. Use 1, 2, 3... for successive late batches so earlier additions keep their numbers."},
         "slide_cover": {
@@ -303,6 +304,8 @@
             "properties": {
               "box": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4, "description": "[x0, y0, x1, y1] to cover, as fractions of the frame. With \"image\", the region of the still to show, at the same place."},
               "image": {"type": "string", "description": "Path to a full-resolution still (e.g. work/stills/<stem>_<slide>.png) held over the clip for this from/to, so a slide stays on screen while the recording wanders off it. Give one entry per region so the live camera tile keeps moving."},
+              "popup": {"type": "object", "description": "With \"image\": show the image as a pop-up card instead of a held still - scaled to w, sliding in from side at \"from\" (source seconds), holding for \"hold\" seconds, sliding out. x/y (resting top-left) and w are frame fractions. Compose the card (text + picture) as an RGBA PNG first.", "properties": {"x": {"type": "number"}, "y": {"type": "number"}, "w": {"type": "number"}, "side": {"enum": ["left", "right"]}}, "required": ["x", "y", "w"]},
+              "hold": {"type": "number", "description": "Seconds a popup image stays fully on screen (default 6)."},
               "fill": {"type": "string", "description": "Cover colour, e.g. #FFFFFF. Match it to the rendered slide background."},
               "text": {"type": "string", "description": "Text drawn on the cover, e.g. a replacement slide title."},
               "text_at": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2, "description": "[x, y] top-left of the text, as fractions of the frame."},

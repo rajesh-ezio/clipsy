@@ -116,7 +116,17 @@ topic was taught, and a topic can run past where you stopped, so read the transc
 **Openers: borrow from outside the range.** A clip must not open mid-thought. Take the setup
 line immediately before the range (his signpost, a handover from the previous topic, a
 definition before the example) or a line just after it, and cut the stumble words out of the
-audio rather than papering over them in the caption.
+audio rather than papering over them in the caption. The line can come from anywhere - the
+agenda, a definition an hour later, two lines stitched in a new order: keep the pieces in the
+order you want them heard, list them in `opener_spans` when they aren't just before the body
+(so the clip keeps its name and number), and title-card any borrowed line whose slide doesn't
+match. Cut at audio dips and transcribe the finished seam (checklist 37).
+
+**Endings: the topic's end, not the last tidy sentence.** Before settling an end, find the next
+slide change after it. If he is still on the same slide, extend to his last sentence before the
+change - stopping before a participant question or his handover into the next topic. Week 4
+needed six clips extended because they stopped on a line that only sounded complete (checklist
+35). Also check the other way: an end must not cross into the next slide's opening line.
 
 Write your reasoning to `analysis/<stem>_analysis.md` first: candidates, rough windows,
 what you're rejecting and why. Then turn it into `output/content-plans/<stem>.json`.
@@ -323,7 +333,16 @@ instead of showing the detour: extract the frame at full resolution into `work/s
 add `slide_cover` entries with `"image"`, `"from"`/`"to"` in source seconds, and a `box` per
 region so the live camera tile keeps moving (two entries: everything left of the tile, and the
 strip below it). The video takes over the moment the screen becomes relevant again. Week 3's
-subject-line clip holds its slide for eight seconds until the tester page appears.
+subject-line clip holds its slide for eight seconds until the tester page appears. The same
+entry covers a Zoom "Loading..." screen at a clip's start: hold the slide that follows it.
+
+**Image pop-up cards.** To explain a framework with a picture (Week 4's BANT card), compose one
+RGBA PNG in `work/stills/` - dark rounded card, the Context label, a one-line definition, then the
+image with branding cropped out (ffmpeg `drawtext` with `assets/fonts/Inter-Bold.otf`, `geq` for
+the rounded alpha) - and add a `slide_cover` entry with `"image"`, `"from"` (source seconds),
+`"hold"` (default 6) and `"popup": {"x", "y", "w", "side"}` as frame fractions. It slides in
+from that side like a callout, holds, and slides out; keep it clear of the camera tile and the
+caption band.
 
 **Approved long clips and late additions.** A clip the user approves over the 5-minute cap
 gets `"long_approved": true` - the validator warns instead of failing ("we don't want to cut

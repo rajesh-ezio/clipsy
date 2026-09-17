@@ -99,6 +99,10 @@ approval gate comes before any render.
   e.g. replace a slide title that doesn't match what the clip is about (`slide_cover`).
 - Title cards: centre a question on an empty slide, or cover a borrowed line's slide for just
   that line (`slide_cover` with `align` and `from`/`to`); pop-ups around them can be pinned.
+- Image pop-up cards: a composed explainer (label, one-line definition, picture) slides in from
+  the side as the presenter names a framework, holds and slides out (`slide_cover` `popup`).
+- Openers borrowed from anywhere in the recording - later, or stitched from two places - while
+  the clip keeps its source-range name and number (`opener_spans`, one source input per run).
 - Approved long clips (`long_approved`) and clips added later that take the next number
   (`append_after_existing`, numbered per batch).
 - A slide held as a still over a stretch where the screen wanders off it, cropped so the live

@@ -32,7 +32,7 @@ import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parent))
 from _paths import SKILL_HOME, WORKDIR, settings_path  # noqa: E402
-from naming import numbered_names  # noqa: E402
+from naming import body_range, numbered_names  # noqa: E402
 from make_captions import cues_for_clip, srt_ts, _ends_well  # noqa: E402
 
 CLIPS_DIR = WORKDIR / "output" / "clips"
@@ -46,6 +46,21 @@ SEAM_FADE = 0.012
 DURATION_TOLERANCE = 0.15
 
 
+def source_seeks(segments):
+    """One source input per run of segments, so a clip can open on a line borrowed from
+    far away - even from later in the recording (Week 4 clip 07 opens on a line from 2:00
+    before its body at 0:43). A segment that jumps backwards, or more than 10 minutes
+    forward, starts a new input seeked just before it; decoding the gap would cost minutes.
+    Returns [(input_index, seek_seconds)] per segment and the list of seeks per input."""
+    seeks, per_seg, prev_end = [], [], None
+    for s, e in segments:
+        if prev_end is None or s < prev_end - 0.01 or s - prev_end > 600:
+            seeks.append(max(0.0, s - PREROLL))
+        per_seg.append((len(seeks) - 1, seeks[-1]))
+        prev_end = e
+    return per_seg, seeks
+
+
 def rendered_length(segments, t0, fps):
     """The runtime the renderer will actually produce, which is not the plan's exact sum.
 
@@ -55,9 +70,9 @@ def rendered_length(segments, t0, fps):
     that as a failure; checking against this still catches a dropped or mis-trimmed
     segment. It also times the closing fade, so the last frames don't sit on black.
     """
-    off = math.ceil(t0 * fps - 1e-9) / fps - t0      # first output frame after the seek
     total = 0.0
-    for s, e in segments:
+    for (s, e), (_, t0) in zip(segments, source_seeks(segments)[0]):
+        off = math.ceil(t0 * fps - 1e-9) / fps - t0      # first output frame after the seek
         a, b = round(s - t0, 3), round(e - t0, 3)
         frames = math.ceil((b - off) * fps - 1e-9) - math.ceil((a - off) * fps - 1e-9)
         total += max(frames / fps, b - a)
@@ -124,12 +139,14 @@ CALLOUT_SLIDE = 0.4     # seconds to slide in, and again to slide out
 def clip_time(segments, t):
     """Source seconds -> seconds into the finished clip. A time inside a cut maps to the
     start of the next keep."""
-    acc = 0.0
+    acc, starts = 0.0, []
     for s, e in segments:
-        if t <= e:
-            return acc + max(t - s, 0.0)
+        if s <= t <= e:
+            return acc + t - s
+        starts.append((s, acc))
         acc += e - s
-    return acc
+    later = [(s, a) for s, a in starts if s > t]
+    return min(later)[1] if later else acc
 
 
 # Inter Bold advance widths in ems, measured by rendering each character through libass
@@ -321,10 +338,10 @@ def filter_graph(segments, t0, subtitles, polish, total, stills=()):
     normalisation. Zoom audio typically lands around -25 LUFS; social feeds play near -14,
     so an unnormalised clip sounds noticeably weak next to everything around it."""
     parts, pads = [], []
-    for i, (s, e) in enumerate(segments):
+    for i, ((s, e), (src, t0)) in enumerate(zip(segments, source_seeks(segments)[0])):
         a, b, d = s - t0, e - t0, e - s
-        parts.append(f"[0:v]trim=start={a:.3f}:end={b:.3f},setpts=PTS-STARTPTS[v{i}]")
-        parts.append(f"[0:a]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS,"
+        parts.append(f"[{src}:v]trim=start={a:.3f}:end={b:.3f},setpts=PTS-STARTPTS[v{i}]")
+        parts.append(f"[{src}:a]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS,"
                      f"afade=t=in:d={SEAM_FADE},"
                      f"afade=t=out:st={max(d - SEAM_FADE, 0):.3f}:d={SEAM_FADE}[a{i}]")
         pads.append(f"[v{i}][a{i}]")
@@ -361,9 +378,16 @@ def filter_graph(segments, t0, subtitles, polish, total, stills=()):
     # frozen slide. Cropped to a box so the live camera tile keeps moving, and drawn before
     # the caption/pop-up chain so those still sit on top.
     vlabel, alabel = "[vc]", "[ac]"
-    for n, (idx, a, b, box) in enumerate(stills, 1):
+    for n, (idx, a, b, box, pop) in enumerate(stills, 1):
         crop = f"crop={box[2]}:{box[3]}:{box[0]}:{box[1]}," if box else ""
         pos = f"{box[0]}:{box[1]}" if box else "0:0"
+        if pop:
+            # an image pop-up: scaled to its width, slides in from the side like a callout,
+            # holds, and slides back out
+            xon, xoff, y, s = pop["x"], pop["x_off"], pop["y"], CALLOUT_SLIDE
+            crop = f"format=rgba,scale={pop['w']}:-1,"
+            pos = (f"x='if(lt(t,{a + s:.3f}),{xoff}+({xon}-({xoff}))*(t-{a:.3f})/{s},"
+                   f"if(gt(t,{b - s:.3f}),{xon}+(({xoff})-{xon})*(t-{b - s:.3f})/{s},{xon}))':y={y}")
         parts.append(f"[{idx}:v]{crop}setsar=1[im{n}]")
         parts.append(f"{vlabel}[im{n}]overlay={pos}:eof_action=pass:"
                      f"enable='between(t,{a:.3f},{b:.3f})'[vi{n}]")
@@ -386,12 +410,14 @@ def measure_loudness(opts, src, t0, segments, target):
     peaks rule out a straight linear gain - loudnorm then falls back to dynamic mode.
     On the ICP clip: -24.8 LUFS in, -15.5 out, against -14."""
     parts, pads = [], []
-    for i, (s, e) in enumerate(segments):
-        parts.append(f"[0:a]atrim=start={s - t0:.3f}:end={e - t0:.3f},asetpts=PTS-STARTPTS[m{i}]")
+    per_seg, seeks = source_seeks(segments)
+    for i, ((s, e), (src_i, t0)) in enumerate(zip(segments, per_seg)):
+        parts.append(f"[{src_i}:a]atrim=start={s - t0:.3f}:end={e - t0:.3f},asetpts=PTS-STARTPTS[m{i}]")
         pads.append(f"[m{i}]")
     parts.append(f"{''.join(pads)}concat=n={len(segments)}:v=0:a=1,"
                  f"loudnorm=I={target}:TP=-1.5:LRA=11:print_format=json[out]")
-    r = subprocess.run([opts["ffmpeg"], "-hide_banner", "-ss", f"{t0:.3f}", "-i", str(src),
+    inputs = [x for t in seeks for x in ("-ss", f"{t:.3f}", "-i", str(src))]
+    r = subprocess.run([opts["ffmpeg"], "-hide_banner", *inputs,
                         "-filter_complex", ";".join(parts), "-map", "[out]", "-f", "null", "-"],
                        capture_output=True, text=True)
     err = r.stderr
@@ -458,22 +484,31 @@ def render_one(job):
                 continue
             a = clip_time(segments, c["from"]) if "from" in c else 0.0
             b = clip_time(segments, c["to"]) if "to" in c else expected
-            box = None
-            if c.get("box"):
+            box, pop = None, None
+            if c.get("popup"):
+                # {"image", "from": source sec, "hold": sec, "popup": {"x", "y", "w", "side"}}
+                # x/y/w as frame fractions; x is the resting left edge
+                p = c["popup"]
+                b = a + c.get("hold", 6.0) + 2 * CALLOUT_SLIDE
+                pw = int(p["w"] * opts["width"])
+                pop = {"w": pw, "x": int(p["x"] * opts["width"]), "y": int(p["y"] * opts["height"]),
+                       "x_off": opts["width"] + 10 if p.get("side", "right") == "right" else -pw - 10}
+            elif c.get("box"):
                 x0, y0, x1, y1 = c["box"]
                 box = (int(x0 * opts["width"]), int(y0 * opts["height"]),
                        int((x1 - x0) * opts["width"]), int((y1 - y0) * opts["height"]))
             img = Path(c["image"])
             if not img.is_absolute():
                 img = WORKDIR / img
-            stills.append((1 + len(stills), a, b, box))
+            stills.append((len(source_seeks(segments)[1]) + len(stills), a, b, box, pop))
             still_inputs += ["-loop", "1", "-framerate", f"{opts['fps']:.3f}", "-i", str(img)]
         graph, vlabel, alabel = filter_graph(segments, t0, subtitles, polish, expected, stills)
 
         out = out_dir / f"{name}.mp4"
         part = out_dir / f".{name}.part.mp4"
         cmd = [opts["ffmpeg"], "-hide_banner", "-loglevel", "error", "-y",
-               "-ss", f"{t0:.3f}", "-i", str(src), *still_inputs,
+               *[x for t in source_seeks(segments)[1] for x in ("-ss", f"{t:.3f}", "-i", str(src))],
+               *still_inputs,
                "-filter_complex", graph, "-map", vlabel, "-map", alabel,
                "-c:v", "libx264", "-preset", opts["preset"], "-crf", str(opts["crf"]),
                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",
@@ -536,7 +571,7 @@ def main():
         raise SystemExit(f"source video missing: {src}")
 
     names = numbered_names(plan)
-    clips = sorted(plan["clips"], key=lambda c: c["keep_segments"][0]["start"])
+    clips = sorted(plan["clips"], key=lambda c: body_range(c["keep_segments"], c.get("opener_spans", ()))[0])
     if args.clip:
         clips = [c for c in clips if c["video_id"] in args.clip]
         if not clips:

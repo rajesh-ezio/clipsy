@@ -35,7 +35,7 @@ _sys.path.insert(0, str(_Path(__file__).resolve().parent))
 from _paths import (SKILL_HOME, WORKDIR, INPUT_DIR, TRANSCRIPTS_DIR, ANALYSIS_DIR,
                     PLANS_DIR, CAPTIONS_DIR, settings_path,
                     ensure_dirs)
-from naming import numbered_names
+from naming import body_range, numbered_names
 PROJECT_ROOT = WORKDIR
 SETTINGS_PATH = settings_path()
 
@@ -49,7 +49,7 @@ def ordered(plan):
     """Clips in original-video order, carrying the same numbered name the
     rendered file and the SRT use - see naming.numbered_names."""
     names = numbered_names(plan)
-    clips = sorted(plan["clips"], key=lambda c: c["keep_segments"][0]["start"])
+    clips = sorted(plan["clips"], key=lambda c: body_range(c["keep_segments"], c.get("opener_spans", ()))[0])
     for c in clips:
         c["_name"] = names[c["video_id"]]
     return clips

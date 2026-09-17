@@ -149,6 +149,30 @@ this and was wrong — it is a fine clip.)
 - **A cover box with an `image` must not be painted.** `cover_ass` skips entries that carry an
   image; without that skip the white fill lands on top of the still and the slide disappears.
 
+## Found while editing Week 4 (2026-09-17)
+
+- **Endings stopped short.** Six clips ended on a line that sounded finished while the slide - and
+  his point - carried on for another 10-120 s. Check the next slide change after every planned end.
+- **Deepgram word timings drift 0.1-0.3 s.** Cuts on word boundaries clipped "finalizing",
+  "ten", "let's" and "around". Cut at RMS dips and transcribe the rendered seam; a speech run with
+  no dip cannot be cut cleanly - leave it.
+- **A caption can lose a word the audio keeps.** `timeline_words` only captions words wholly inside
+  a keep (±10 ms); a word whose transcript end runs past the cut is dropped from the captions.
+  Add it back with a line-safe fix.
+- **Borrowed openers from later in the recording broke three assumptions:** the renderer seeked
+  once to the first keep (now one input per forward run - `source_seeks`), `clip_time` returned
+  0 for any time before the first keep (now containment first), and names/numbering used the
+  first keep's start (now `body_range`, which skips openers from later and any `opener_spans`).
+  A cover whose `to` sits exactly on a seam shared by two keeps maps to the wrong one - nudge it
+  10 ms inside the keep you mean.
+- **Builder video_ids are reassigned on every rebuild** (ordered by source), so `--clip clip-07`
+  can render a different clip than it did an hour ago. Resolve the id from `short_name` each time.
+- **Duplicate dict keys in the builder's FIXES silently override.** A new entry for a clip that
+  already had fixes wiped the old ones; append to the existing list and check for duplicates.
+- **Image pop-ups need RGBA and escaping.** Draw the card in RGB before `drawbox` fills (a YUV
+  JPEG turned #FBFDFE into grey), and give the overlay `x` expression in single quotes so its
+  commas survive the filtergraph.
+
 ## CapCut — retired 2026-09-10
 
 The skill once built CapCut drafts by writing CapCut's project JSON straight to disk. It was

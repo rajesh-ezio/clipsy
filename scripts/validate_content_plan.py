@@ -19,6 +19,7 @@ from _paths import (SKILL_HOME, WORKDIR, INPUT_DIR, TRANSCRIPTS_DIR, ANALYSIS_DI
                     PLANS_DIR, CAPTIONS_DIR, settings_path,
                     ensure_dirs)
 PROJECT_ROOT = WORKDIR
+from naming import body_range  # noqa: E402
 SETTINGS_PATH = settings_path()
 
 
@@ -282,10 +283,11 @@ def validate_clip(clip, idx, settings, rep: Report, words=None):
         kept = sum(k["end"] - k["start"] for k in keeps)
         if abs(duration - kept) > EPS:
             rep.error(f"{tag}: duration_sec ({duration}) does not match the sum of keep_segments ({kept:.2f})")
-        if abs(start - keeps[0]["start"]) > EPS:
-            rep.error(f"{tag}: source_start ({start}) should equal the first keep_segment start ({keeps[0]['start']})")
-        if abs(end - keeps[-1]["end"]) > EPS:
-            rep.error(f"{tag}: source_end ({end}) should equal the last keep_segment end ({keeps[-1]['end']})")
+        body_start, body_end = body_range(keeps, clip.get("opener_spans", ()))
+        if abs(start - body_start) > EPS:
+            rep.error(f"{tag}: source_start ({start}) should equal the clip body's first keep start ({body_start})")
+        if abs(end - body_end) > EPS:
+            rep.error(f"{tag}: source_end ({end}) should equal the clip body's last keep end ({body_end})")
 
     if duration > settings["max_clip_duration_sec"]:
         # the user can approve a longer clip so a topic is never cut short to fit the cap

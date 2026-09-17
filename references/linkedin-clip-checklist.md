@@ -268,6 +268,66 @@ a third-party listing said 2005). The same applies to the tracker's Score reason
 by someone choosing what to post, so editing notes ("the demo is cut", "as the user asked")
 never belong in it - keep those in why_standalone and override score_reasoning per clip.
 
+**35. End where the topic ends - check the next slide change, not the last tidy line.** Week 4's
+most common correction: six clips ended early on a line that merely sounded finished, while he
+kept going on the same slide - a wrap-up ("So it's important to use cost at each stage"), the
+second half of a slide (the hyper-growth org after the first eight hires), closing advice ("focus
+on a few channels and do them really well"). For every clip, look up the first slide change after
+the planned end: if he is still on that slide, extend to his last sentence before it - stopping
+before a participant question or his own handover into the next topic ("So then we have...",
+"Alright"). The opposite also happened once: a clip ran two lines into the next slide's topic.
+Cut silences and stumbles inside the extension rather than stopping short to keep it tight.
+
+**36. An opener can come from anywhere in the recording.** The best line that names the topic
+may sit earlier (the agenda at 0:04 for a 0:57 clip), later (a velocity definition at 2:00 for a
+0:43 clip), or in two places stitched in his order of your choosing (a definition, then the line
+before it, then the body). Search the whole transcript for the topic word before settling, and
+read the 30 s before the current start - three of Week 4's best openers were there. Keep the
+opener's pieces in the order given (the builder must not sort them), list them in the clip's
+`opener_spans` when they aren't simply before the body, and put a title card over them whenever
+the slide on screen belongs to a different topic. A line reused as an opener may also live in
+another clip; say so once.
+
+**37. Cut on the audio, then prove it by re-transcribing.** Deepgram word times drift 0.1-0.3 s,
+so a cut on a word boundary clips syllables: "finalizing" became "financing", "ten" became "end",
+"play around" became "play a role", "let's" vanished. Pick cut points from an RMS dip (10-20 ms
+windows), render, and transcribe the finished seam - reading the plan is not enough. When two
+phrases run together with no dip ("Right? Align with..."), every cut clips a word: leave the
+restart in and caption it as spoken. Cold-start transcription of a lone first word is unreliable
+("Nurture" read as "not sure"); re-test with a sentence of context before calling it clipped.
+
+**38. Captions at seams and on jargon.** A word the audio keeps can drop out of the captions when
+its transcript time straddles the cut ("stream.", "in finalizing", "company.") - add it back with
+a line-safe fix and re-check orphans. The transcript mishears the vocabulary of the session: ARR
+-> "error", PLG -> "PLT", BANT -> "band", "$25-30 million" -> "$2,530,000,000", "some of them" ->
+"some of the women". Confirm against the slide on screen or a re-transcription with numerals off.
+In the builder, a second FIXES entry for the same clip silently replaces the first - append to
+the existing list.
+
+**39. One canonical wording per company pop-up.** Once a company's box text is approved it is
+reused word for word in every clip and every week (only a length-driven trim is allowed, and
+noted). When he names the company, the plain box; when he only says "we" or "my past company",
+the Context box quoting his words: 'Here "my past company" refers to Acme Commerce, a B2B
+SaaS that lets retailers launch and run their own online store.'
+
+**40. Title cards: his words, one line, proofread.** Take the card title from how he names the
+topic in the transcript, not a paraphrase. Keep it on one line - shrink the size before breaking
+it (0.056 fits ~45 characters on the 1470-wide frame). When the user supplies the copy, proofread
+it and say what changed: "Sign ups to Meeting" -> "Sign-ups to Meetings", a dash between topic and
+detail -> a colon. A black "Loading..." or editor screen at the start gets the next slide held
+over it as a still, not a card.
+
+**41. An explainer image is a pop-up card, not a slide replacement.** For a framework he names
+(BANT), compose one card: the Context label, the user's one-line definition, then the image with
+its branding strip and decorations cropped out. It slides in from the side as he names it, holds
+about 6 s, and slides out, clear of the camera tile and captions. Flag typos in third-party
+images ("Are you peaking") instead of silently patching them.
+
+**42. The tracker follows the edit.** When an opener or ending changes a clip's content, rewrite
+its summary (and the score reason if the angle changed) before emitting rows - Week 4 clip 07's
+summary still promised a first-call SLA the new cut removed. Take Drive links only after checking
+each uploaded file's size matches the local render, so a stale upload never gets linked.
+
 ## Selection defaults for this account
 
 - **Score bar:** keep 8+ only; quality over quantity.

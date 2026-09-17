@@ -14,6 +14,20 @@ def slug(title: str) -> str:
     return " ".join(s.split()).rstrip(". ")
 
 
+def body_range(keeps, opener_spans=()):
+    """(start, end) of a clip's body in the source. A borrowed opener from LATER in the
+    recording plays first but isn't where the clip lives, so a keep that some later keep
+    starts before is left out; one borrowed from earlier is simply the first keep. An opener
+    stitched from elsewhere in another order (Week 4 clip 08: a definition at 0:34:51, then
+    the line before it, then the body at 0:47:52) is named in the clip's "opener_spans"
+    ([[start, end], ...] source seconds) and left out too."""
+    keeps = [k for k in keeps
+             if not any(a - 0.01 <= k["start"] and k["end"] <= b + 0.01 for a, b in opener_spans)]
+    body = [k for i, k in enumerate(keeps)
+            if not any(later["start"] < k["start"] for later in keeps[i + 1:])]
+    return min(k["start"] for k in body), max(k["end"] for k in body)
+
+
 def source_range(clip):
     """"0.58.29-1.04.40" - where the clip starts and ends in the original recording.
 
@@ -21,8 +35,8 @@ def source_range(clip):
     the last keep's end: what you seek to in the source to see the clip in context.
     """
     hms = lambda t: f"{int(t // 3600)}.{int(t % 3600 // 60):02d}.{int(t % 60):02d}"
-    a = clip.get("source_start", clip["keep_segments"][0]["start"])
-    b = clip.get("source_end", clip["keep_segments"][-1]["end"])
+    a, b = body_range(clip["keep_segments"], clip.get("opener_spans", ()))
+    a, b = clip.get("source_start", a), clip.get("source_end", b)
     return f"{hms(a)}-{hms(b)}"
 
 
@@ -40,7 +54,7 @@ def numbered_names(plan):
     # everyone after it ("append_after_existing": true, or 2, 3... for later batches, so an
     # earlier addition keeps its number too) - filenames and sheet rows stay put
     ordered = sorted(plan["clips"], key=lambda c: (int(c.get("append_after_existing") or 0),
-                                                   c["keep_segments"][0]["start"]))
+                                                   body_range(c["keep_segments"], c.get("opener_spans", ()))[0]))
     names = {}
     for i, c in enumerate(ordered, 1):
         name = f"{i:02d} {c.get('short_name') or c['title']}"
